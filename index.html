@@ -1,116 +1,68 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="de">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2022.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gazastreifen auf der Schweizer Karte</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-path-drag@1.1.0/dist/L.Path.Drag.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .gaza-label { background-color: transparent; border: none; box-shadow: none; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
+    </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="de"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Gazastreifen auf der Schweizer Karte&lt;/title&gt;</p>
-<p class="p2"><span class="Apple-converted-space">    </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"&gt;&lt;/script&gt;</p>
-<p class="p2"><span class="Apple-converted-space">    </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/leaflet-path-drag@1.1.0/dist/L.Path.Drag.min.js"&gt;&lt;/script&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* Stellt sicher, dass die Karte den ganzen Bildschirm füllt */</p>
-<p class="p1"><span class="Apple-converted-space">        </span>body { margin: 0; padding: 0; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#map { position: absolute; top: 0; bottom: 0; width: 100%; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="map"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>// 1. Die Karte initialisieren und auf die Schweiz zentrieren</p>
-<p class="p1"><span class="Apple-converted-space">        </span>// Die Zahlen in setView sind [Breitengrad, Längengrad] und der Zoom-Level</p>
-<p class="p1"><span class="Apple-converted-space">        </span>var map = L.map('map').setView([46.8182, 8.2275], 8);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>// 2. Die Hintergrundkarte hinzufügen (hier eine detaillierte Schweizer Karte)</p>
-<p class="p1"><span class="Apple-converted-space">        </span>L.tileLayer('https://tile.openstreetmap.ch/switzerland/{z}/{x}/{y}.png', {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>maxZoom: 18,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>attribution: '&amp;copy; &lt;a href="http://www.openstreetmap.org/copyright"&gt;OpenStreetMap&lt;/a&gt;'</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}).addTo(map);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>// 3. Die Geodaten für den Gazastreifen (Umriss und Städte)</p>
-<p class="p1"><span class="Apple-converted-space">        </span>// Die Daten sind im GeoJSON-Format direkt hier im Code hinterlegt.</p>
-<p class="p1"><span class="Apple-converted-space">        </span>var gazaGeoJSON = {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>"type": "FeatureCollection",</p>
-<p class="p1"><span class="Apple-converted-space">          </span>"features": [</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{</p>
-<p class="p1"><span class="Apple-converted-space">              </span>"type": "Feature",</p>
-<p class="p1"><span class="Apple-converted-space">              </span>"properties": { "name": "Gazastreifen" },</p>
-<p class="p1"><span class="Apple-converted-space">              </span>"geometry": {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>"type": "Polygon",</p>
-<p class="p1"><span class="Apple-converted-space">                </span>"coordinates": [[</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>[34.33232, 31.22502], [34.22669, 31.30959], [34.24803, 31.36592],<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                  </span>[34.2205, 31.42225], [34.28292, 31.49257], [34.34533, 31.54225],<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                  </span>[34.41727, 31.56592], [34.48292, 31.59624], [34.54227, 31.61657],<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                  </span>[34.56361, 31.59959], [34.46903, 31.50592], [34.40661, 31.43225],<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                  </span>[34.35824, 31.33259], [34.33232, 31.22502]</p>
-<p class="p1"><span class="Apple-converted-space">                </span>]]</p>
-<p class="p1"><span class="Apple-converted-space">              </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ "type": "Feature", "properties": { "name": "Gaza-Stadt" }, "geometry": { "type": "Point", "coordinates": [34.4667, 31.5] } },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ "type": "Feature", "properties": { "name": "Chan Yunis" }, "geometry": { "type": "Point", "coordinates": [34.3, 31.35] } },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ "type": "Feature", "properties": { "name": "Rafah" }, "geometry": { "type": "Point", "coordinates": [34.25, 31.2833] } }</p>
-<p class="p1"><span class="Apple-converted-space">          </span>]</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>// 4. Den Gazastreifen auf der Karte platzieren und gestalten</p>
-<p class="p1"><span class="Apple-converted-space">        </span>// Wir starten ihn über der Region Genf als Beispiel</p>
-<p class="p1"><span class="Apple-converted-space">        </span>var gazaLayer = L.geoJSON(gazaGeoJSON, {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>style: function(feature) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (feature.geometry.type === 'Polygon') {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>return {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>color: "#e60000", // Rote Umrisslinie</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>weight: 2,</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>fillColor: "#e60000",</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>fillOpacity: 0.4 // Halbtransparent</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>};</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>// Fügt den Städtenamen als kleinen Tooltip hinzu</p>
-<p class="p1"><span class="Apple-converted-space">            </span>onEachFeature: function(feature, layer) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (feature.properties &amp;&amp; feature.properties.name) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>layer.bindTooltip(feature.properties.name, {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>permanent: true, // Name immer anzeigen</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>direction: 'center',</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>className: 'gaza-label' // CSS-Klasse für optionales Styling</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>},</p>
-<p class="p1"><span class="Apple-converted-space">            </span>// Stellt sicher, dass die Städte als einfache Kreise dargestellt werden</p>
-<p class="p1"><span class="Apple-converted-space">            </span>pointToLayer: function(feature, latlng) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>return L.circleMarker(latlng, {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>radius: 4,</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>fillColor: "#ffffff",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>color: "#000",</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>weight: 1,</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>opacity: 1,</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>fillOpacity: 0.8</p>
-<p class="p1"><span class="Apple-converted-space">                </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}).addTo(map);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>// 5. Die Funktion zum Verschieben für die ganze Ebene aktivieren</p>
-<p class="p1"><span class="Apple-converted-space">        </span>gazaLayer.dragging.enable();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([46.8182, 8.2275], 8);
+
+        L.tileLayer('https://tile.openstreetmap.ch/switzerland/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        var gazaGeoJSON = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": { "name": "Gazastreifen" },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                  [34.33232, 31.22502], [34.22669, 31.30959], [34.24803, 31.36592],
+                  [34.2205, 31.42225], [34.28292, 31.49257], [34.34533, 31.54225],
+                  [34.41727, 31.56592], [34.48292, 31.59624], [34.54227, 31.61657],
+                  [34.56361, 31.59959], [34.46903, 31.50592], [34.40661, 31.43225],
+                  [34.35824, 31.33259], [34.33232, 31.22502]
+                ]]
+              }
+            },
+            { "type": "Feature", "properties": { "name": "Gaza-Stadt" }, "geometry": { "type": "Point", "coordinates": [34.4667, 31.5] } },
+            { "type": "Feature", "properties": { "name": "Chan Yunis" }, "geometry": { "type": "Point", "coordinates": [34.3, 31.35] } },
+            { "type": "Feature", "properties": { "name": "Rafah" }, "geometry": { "type": "Point", "coordinates": [34.25, 31.2833] } }
+          ]
+        };
+
+        var gazaLayer = L.geoJSON(gazaGeoJSON, {
+            style: function(feature) {
+                if (feature.geometry.type === 'Polygon') {
+                    return { color: "#e60000", weight: 2, fillColor: "#e60000", fillOpacity: 0.4 };
+                }
+            },
+            onEachFeature: function(feature, layer) {
+                if (feature.properties && feature.properties.name) {
+                    layer.bindTooltip(feature.properties.name, { permanent: true, direction: 'center', className: 'gaza-label' });
+                }
+            },
+            pointToLayer: function(feature, latlng) {
+                return L.circleMarker(latlng, { radius: 4, fillColor: "#ffffff", color: "#000", weight: 1, opacity: 1, fillOpacity: 0.8 });
+            }
+        }).addTo(map);
+
+        gazaLayer.dragging.enable();
+    </script>
 </body>
 </html>
