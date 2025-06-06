@@ -16,8 +16,8 @@
 <body>
     <div id="map"></div>
     <script>
-        // 1. Karte initialisieren und auf die Schweiz zentrieren
-        var map = L.map('map').setView([46.948, 7.4474], 8); // Auf Bern zentriert
+        // 1. Karte initialisieren und auf Bern zentrieren
+        var map = L.map('map').setView([46.948, 7.4474], 8);
 
         // 2. Hintergrundkarte laden
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -25,59 +25,59 @@
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // 3. Original-Geodaten für den Gazastreifen
-        var gazaGeoJSON = {
-          "type": "FeatureCollection",
-          "features": [
-            { "type": "Feature", "properties": { "name": "Gazastreifen" }, "geometry": { "type": "Polygon", "coordinates": [[ [34.33232, 31.22502], [34.22669, 31.30959], [34.24803, 31.36592], [34.2205, 31.42225], [34.28292, 31.49257], [34.34533, 31.54225], [34.41727, 31.56592], [34.48292, 31.59624], [34.54227, 31.61657], [34.56361, 31.59959], [34.46903, 31.50592], [34.40661, 31.43225], [34.35824, 31.33259], [34.33232, 31.22502] ]]}},
-            { "type": "Feature", "properties": { "name": "Gaza-Stadt" }, "geometry": { "type": "Point", "coordinates": [34.4667, 31.5] } },
-            { "type": "Feature", "properties": { "name": "Chan Yunis" }, "geometry": { "type": "Point", "coordinates": [34.3, 31.35] } },
-            { "type": "Feature", "properties": { "name": "Rafah" }, "geometry": { "type": "Point", "coordinates": [34.25, 31.2833] } }
-          ]
-        };
+        // --- KOMPLETT NEUE LOGIK ZUR ERSTELLUNG UND VERSCHIEBUNG ---
 
-        // --- NEUER ABSCHNITT: Gazastreifen programmatisch über Bern legen ---
+        // A. Zieldestination (Bern) und Ankerpunkt im Original (Gaza-Stadt)
         var bernCoords = { lat: 46.948, lon: 7.4474 };
         var gazaCityCoords = { lat: 31.5, lon: 34.4667 };
+        
+        // B. Funktion, die eine Koordinate verschiebt und dabei die Form erhält
+        function repositionPoint(originalPoint) {
+            var originalLon = originalPoint[0];
+            var originalLat = originalPoint[1];
+            
+            // Berechne den Abstand des Punktes vom Ankerpunkt (Gaza-Stadt)
+            var lonDiff = originalLon - gazaCityCoords.lon;
+            var latDiff = originalLat - gazaCityCoords.lat;
 
-        // Berechne den geografischen Versatz (Offset)
-        var latOffset = bernCoords.lat - gazaCityCoords.lat;
-        var lonOffset = bernCoords.lon - gazaCityCoords.lon;
+            // Wende diesen Abstand auf die Zieldestination (Bern) an
+            return [bernCoords.lon + lonDiff, bernCoords.lat + latDiff];
+        }
 
-        // Wende den Versatz auf JEDEN Punkt der Gaza-Daten an
-        gazaGeoJSON.features.forEach(function(feature) {
-            if (feature.geometry.type === 'Polygon') {
-                feature.geometry.coordinates[0].forEach(function(point) {
-                    point[0] += lonOffset; // Längengrad anpassen
-                    point[1] += latOffset; // Breitengrad anpassen
-                });
-            } else if (feature.geometry.type === 'Point') {
-                feature.geometry.coordinates[0] += lonOffset;
-                feature.geometry.coordinates[1] += latOffset;
-            }
+        // C. Original-Daten getrennt für Fläche und Städte
+        var gazaPolygonData = { "type": "Polygon", "coordinates": [[ [34.33232, 31.22502], [34.22669, 31.30959], [34.24803, 31.36592], [34.2205, 31.42225], [34.28292, 31.49257], [34.34533, 31.54225], [34.41727, 31.56592], [34.48292, 31.59624], [34.54227, 31.61657], [34.56361, 31.59959], [34.46903, 31.50592], [34.40661, 31.43225], [34.35824, 31.33259], [34.33232, 31.22502] ]]};
+        var gazaCitiesData = [
+            { "name": "Gaza-Stadt", "coords": [34.4667, 31.5] },
+            { "name": "Chan Yunis", "coords": [34.3, 31.35] },
+            { "name": "Rafah", "coords": [34.25, 31.2833] }
+        ];
+
+        // D. Wende die Verschiebungs-Funktion auf alle Punkte an
+        gazaPolygonData.coordinates[0] = gazaPolygonData.coordinates[0].map(repositionPoint);
+        gazaCitiesData.forEach(city => {
+            city.coords = repositionPoint(city.coords);
         });
-        // --- ENDE DES NEUEN ABSCHNITTS ---
 
+        // E. Erstelle getrennte Ebenen (Layer) für Fläche und Städte
+        var polygonLayer = L.geoJSON({ "type": "Feature", "geometry": gazaPolygonData }, {
+            style: { color: "#e60000", weight: 2, fillColor: "#e60000", fillOpacity: 0.4, interactive: true }
+        });
 
-        // 4. Den verschobenen Gazastreifen auf der Karte platzieren und gestalten
-        var gazaLayer = L.geoJSON(gazaGeoJSON, {
-            style: function(feature) {
-                if (feature.geometry.type === 'Polygon') {
-                    return { color: "#e60000", weight: 2, fillColor: "#e60000", fillOpacity: 0.4 };
-                }
-            },
-            onEachFeature: function(feature, layer) {
-                if (feature.properties && feature.properties.name) {
-                    layer.bindTooltip(feature.properties.name, { permanent: true, direction: 'center', className: 'gaza-label' });
-                }
-            },
-            pointToLayer: function(feature, latlng) {
-                return L.circleMarker(latlng, { radius: 4, fillColor: "#ffffff", color: "#000", weight: 1, opacity: 1, fillOpacity: 0.8 });
-            }
-        }).addTo(map);
+        var citiesLayers = gazaCitiesData.map(city => {
+            return L.marker(L.latLng(city.coords[1], city.coords[0]), {
+                // Deaktiviert, dass man die Stadt-Punkte selbst anklickt
+                interactive: false 
+            }).bindTooltip(city.name, {
+                permanent: true, direction: 'center', className: 'gaza-label'
+            });
+        });
 
-        // 5. Die Funktion zum Verschieben aktivieren
-        gazaLayer.dragging.enable();
+        // F. Bündle alle Ebenen in EINER verschiebbaren Gruppe
+        var gazaGroup = L.featureGroup([polygonLayer, ...citiesLayers]).addTo(map);
+
+        // G. Mache die ganze Gruppe verschiebbar
+        gazaGroup.dragging.enable();
+
     </script>
 </body>
 </html>
